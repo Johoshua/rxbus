@@ -15,12 +15,12 @@ public class RxBus {
 
     private RxBus(){}
 
-    private final Subject<Object, Object> rxBus = new SerializedSubject<>(PublishSubject.create());
+    private final Subject<Object, Object> subject = new SerializedSubject<>(PublishSubject.create());
 
     public void send(String stream, Object object)
     {
         Event event = new Event(stream, object);
-        rxBus.onNext(event);
+        subject.onNext(event);
     }
 
     public interface ReceiveOnComputationThread
@@ -30,7 +30,7 @@ public class RxBus {
 
     public void registerOnComputationThread(final ReceiveOnComputationThread receiveOnComputationThread)
     {
-        rxBus.observeOn(Schedulers.computation()).subscribe(
+        subject.observeOn(Schedulers.computation()).subscribe(
                 new Action1<Object>() {
                     @Override
                     public void call(Object object) {
