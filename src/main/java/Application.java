@@ -1,25 +1,14 @@
-import org.springframework.web.client.RestTemplate;
 import rx.Observable;
-import rx.Observer;
 import rx.Scheduler;
 import rx.Subscriber;
-import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.observables.AsyncOnSubscribe;
-import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by rainbow on 6/25/16.
- */
 public class Application {
     public static void main(String[] args) {
-        RestTemplate restTemplate = new RestTemplate();
-        String res = restTemplate.getForObject("https://api.github.com/events", String.class);
 
-        System.out.println(res);
 
         List<String> names = new ArrayList<String>();
         names.add("test1");
@@ -102,7 +91,18 @@ public class Application {
         });
 
 
+        RxBus.instance.send("ni hao");
 
+        RxBus.instance.toObservable().subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object o) {
+                System.out.println(o.toString());
+            }
+        });
+
+        RxBus.instance.send("ni hao again");
+
+        RxBus.instance.send("ni hao again again");
     }
 
 
