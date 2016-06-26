@@ -90,19 +90,19 @@ public class Application {
             }
         });
 
+        RxBus.instance.registerOnComputationThread(new RxBus.ReceiveOnComputationThread(){
 
-        RxBus.instance.send("ni hao");
-
-        RxBus.instance.toObservable().subscribe(new Action1<Object>() {
             @Override
-            public void call(Object o) {
-                System.out.println(o.toString());
+            public void OnReceive(String stream, Object object) {
+                if(stream.equals("feed"))
+                    System.out.println("just got new feed " + object);
             }
         });
 
-        RxBus.instance.send("ni hao again");
-
-        RxBus.instance.send("ni hao again again");
+        RxBus.instance.send("feed", "a");
+        RxBus.instance.send("feed", "b");
+        RxBus.instance.send("fee", "c");
+        RxBus.instance.send("", "d");
     }
 
 
