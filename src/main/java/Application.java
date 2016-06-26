@@ -10,31 +10,21 @@ import rx.functions.Func1;
 public class Application {
     public static void main(String[] args) {
 
-        CloseableHttpAsyncClient httpClient = HttpAsyncClients.createDefault();
-        httpClient.start();
-        ObservableHttp.createRequest(HttpAsyncMethods.createGet("http://demo.howopensource.com/sse/"), httpClient)
-                .toObservable()
-                .flatMap(new Func1<ObservableHttpResponse, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(ObservableHttpResponse observableHttpResponse) {
-                        return observableHttpResponse.getContent().map(new Func1<byte[], Object>() {
+        RxBus.instance.registerOnComputationThread(new RxBus.ReceiveOnComputationThread(){
 
-                            @Override
-                            public Object call(byte[] bytes) {
-                                return new String(bytes);
-                            }
-                        });
-                    }
-                })
-                .toBlocking()
-                .forEach(new Action1<Object>() {
+            @Override
+            public void OnReceive(String stream, Object object) {
+                for(int i=0; i<Integer.MAX_VALUE; i++);
+                if(stream.equals("feed"))
+                    System.out.println("just got new feed " + object);
+            }
+        });
 
-                    @Override
-                    public void call(Object o) {
-                        System.out.println("print stream starts");
-                        System.out.println(o);
-                    }
-                });
+        for(int i=0; i<10000000; i++)
+        {
+            RxBus.instance.send("feed", Integer.toString(i));
+        }
+
     }
 
 

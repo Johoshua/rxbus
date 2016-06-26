@@ -1,6 +1,12 @@
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.nio.client.methods.HttpAsyncMethods;
 import rx.Observable;
 import rx.Subscriber;
+import rx.apache.http.ObservableHttp;
+import rx.apache.http.ObservableHttpResponse;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,19 +68,30 @@ public class TestApplication {
                 () -> System.out.println("the observable is finished"));
 
 
-        RxBus.instance.registerOnComputationThread(new RxBus.ReceiveOnComputationThread(){
+        CloseableHttpAsyncClient httpClient = HttpAsyncClients.createDefault();
+        httpClient.start();
+        ObservableHttp.createRequest(HttpAsyncMethods.createGet("http://demo.howopensource.com/sse/"), httpClient)
+                .toObservable()
+                .flatMap(new Func1<ObservableHttpResponse, Observable<?>>() {
+                    @Override
+                    public Observable<?> call(ObservableHttpResponse observableHttpResponse) {
+                        return observableHttpResponse.getContent().map(new Func1<byte[], Object>() {
 
-            @Override
-            public void OnReceive(String stream, Object object) {
-                //for(int i=0; i<Integer.MAX_VALUE; i++);
-                if(stream.equals("feed"))
-                    System.out.println("just got new feed " + object);
-            }
-        });
+                            @Override
+                            public Object call(byte[] bytes) {
+                                return new String(bytes);
+                            }
+                        });
+                    }
+                })
+                .toBlocking()
+                .forEach(new Action1<Object>() {
 
-        for(int i=0; i<10000000; i++)
-        {
-            RxBus.instance.send("feed", Integer.toString(i));
-        }
+                    @Override
+                    public void call(Object o) {
+                        System.out.println("print stream starts");
+                        System.out.println(o);
+                    }
+                });
     }
 }

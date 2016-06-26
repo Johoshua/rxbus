@@ -1,6 +1,7 @@
 import domain.Event;
 import rx.Observable;
 import rx.Subscription;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
@@ -30,7 +31,7 @@ public class RxBus {
 
     public void registerOnComputationThread(final ReceiveOnComputationThread receiveOnComputationThread)
     {
-        subject.observeOn(Schedulers.computation()).subscribe(
+        subject.onBackpressureBuffer().retry().subscribe(
                 new Action1<Object>() {
                     @Override
                     public void call(Object object) {
